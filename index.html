@@ -98,6 +98,7 @@
     }
   </style>
 </head>
+
 <body>
   <div id="character-container">
     <div id="focus-overlay"></div>
@@ -112,6 +113,8 @@
     <h3>Before You Start</h3>
     <p id="dnd-instructions"></p>
   </div>
+
+  <div id="time-display-face-down" style="display: none;"></div>
 
   <script>
     // Game Configuration
@@ -135,7 +138,7 @@
     const timeDisplay = document.getElementById("time-display");
     const dndReminder = document.getElementById("dnd-reminder");
     const dndInstructions = document.getElementById("dnd-instructions");
-
+  
     // Initialize
     function init() {
       updateSprites();
@@ -143,7 +146,7 @@
       focusBtn.addEventListener("click", showDndReminder);
       setupDndInstructions();
     }
-
+  
     // Set up appropriate DND instructions based on platform
     function setupDndInstructions() {
       const isIOS = /iPhone|iPad|iPod/.test(navigator.userAgent);
@@ -153,7 +156,7 @@
         dndInstructions.textContent = "For best results, enable Do Not Disturb mode in your phone's settings before starting your focus session.";
       }
     }
-
+  
     // Show DND reminder before starting focus mode
     function showDndReminder() {
       if (!isFocusMode) {
@@ -165,7 +168,7 @@
         toggleFocusMode();
       }
     }
-
+  
     // Blinking Animation
     function startBlinking() {
       setInterval(() => {
@@ -177,7 +180,7 @@
         }
       }, 3000);
     }
-
+  
     // Toggle Focus Mode
     function toggleFocusMode() {
       isFocusMode = !isFocusMode;
@@ -204,7 +207,7 @@
         focusBtn.addEventListener("click", showDndReminder);
       }
     }
-
+  
     function updateTimer() {
       totalSeconds++;
       const mins = Math.floor(totalSeconds/60).toString().padStart(2,'0');
@@ -212,7 +215,7 @@
       timeDisplay.textContent = `${mins}:${secs}`;
       if (totalSeconds % 900 === 0) checkEvolution();
     }
-
+  
     // Evolution Check
     function checkEvolution() {
       const stage = STAGES[currentStage];
@@ -223,13 +226,13 @@
         alert(`Congratulations! Your MicroMate has reached the ${stage.name} stage!`);
       }
     }
-
+  
     // Update All Sprites
     function updateSprites() {
       normalSprite.src = `/character/${currentStage}-normal.png`;
       focusSprite.src = `/character/${currentStage}-focus.png`;
     }
-
+  
     // Start the game
     window.onload = init;
   </script>
