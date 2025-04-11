@@ -2,239 +2,379 @@
 <html>
 <head>
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>MicroMate</title>
-  <style>
-    body {
-        padding: 5vw;
-        margin: 0;
-        background: #222;
-        height: 100vh;
-        display: flex;
-        flex-direction: column;
-        justify-content: center;
-        align-items: center;
-        font-family: Arial, sans-serif;
-        color: white;
-        text-align: center;
-    }
-    
-    #character-normal, #character-focus {
-        width: 30vw;
-        min-width: 150px;
-    }
-
-    #time-display, #focus-btn {
-        font-size: min(5vw, 24px);
-    }
-
-    #character-container {
-        position: relative;
-        height: 200px;
-        margin-bottom: 20px;
-    }
-    
-    #character-normal, #character-focus {
-        position: absolute;
-        left: 50%;
-        transform: translateX(-50%);
-        image-rendering: pixelated;
-    }
-    
-    #focus-overlay {
-        position: absolute;
-        top: -10px;
-        left: 50%;
-        transform: translateX(-50%);
-        width: 100px;
-        height: 100px;
-        background: rgba(255, 255, 0, 0.2);
-        border-radius: 50%;
-        display: none;
-        pointer-events: none;
-    }
-    
-    #focus-btn {
-        padding: 12px 24px;
-        background: #4CAF50;
-        border: none;
-        border-radius: 8px;
-        color: white;
-        cursor: pointer;
-        font-family: Arial, sans-serif;
-        font-size: 16px;
-        font-weight: bold;
-        margin: 30px 0 15px 0;
-    }
-    
-    #time-display {
-        font-family: Arial, sans-serif;
-        font-size: 20px;
-        font-weight: bold;
-        margin: 10px 0;
-        color: #4CAF50;
-        letter-spacing: 1px;
-    }
-    
-    .dnd-reminder {
-        background-color: #333;
-        padding: 15px;
-        border-radius: 8px;
-        margin-top: 20px;
-        max-width: 80%;
-        display: none;
-    }
-    
-    .dnd-reminder.show {
-        display: block;
-    }
-    
-    .dnd-reminder h3 {
-        margin-top: 0;
-        color: #4CAF50;
-    }
-    
-    .dnd-reminder p {
-        margin-bottom: 0;
-    }
-  </style>
-</head>
-
-<body>
-  <div id="character-container">
-    <div id="focus-overlay"></div>
-    <img id="character-normal" src="/character/baby-normal.png">
-    <img id="character-focus" src="/character/baby-focus.png" style="display:none">
-  </div>
-  
-  <div id="time-display">00:00</div>
-  <button id="focus-btn">Begin first focus session!</button>
-
-  <div id="dnd-reminder" class="dnd-reminder">
-    <h3>Before You Start</h3>
-    <p id="dnd-instructions"></p>
-  </div>
-
-  <div id="time-display-face-down" style="display: none;"></div>
-
-  <script>
-    // Game Configuration
-    const STAGES = {
-      baby: { next: "child", minutes: 15, name: "Child" },
-      child: { next: "teen", minutes: 30, name: "Teen" },
-      teen: { next: "adult", minutes: 45, name: "Adult" }
-    };
-    
-    // Game State
-    let currentStage = "baby";
-    let totalSeconds = 0;
-    let isFocusMode = false;
-    let timer;
-    
-    // DOM Elements
-    const normalSprite = document.getElementById("character-normal");
-    const focusSprite = document.getElementById("character-focus");
-    const focusOverlay = document.getElementById("focus-overlay");
-    const focusBtn = document.getElementById("focus-btn");
-    const timeDisplay = document.getElementById("time-display");
-    const dndReminder = document.getElementById("dnd-reminder");
-    const dndInstructions = document.getElementById("dnd-instructions");
-  
-    // Initialize
-    function init() {
-      updateSprites();
-      startBlinking();
-      focusBtn.addEventListener("click", showDndReminder);
-      setupDndInstructions();
-    }
-  
-    // Set up appropriate DND instructions based on platform
-    function setupDndInstructions() {
-      const isIOS = /iPhone|iPad|iPod/.test(navigator.userAgent);
-      if (isIOS) {
-        dndInstructions.textContent = "For best results, enable Do Not Disturb mode in your Control Center before starting your focus session.";
-      } else {
-        dndInstructions.textContent = "For best results, enable Do Not Disturb mode in your phone's settings before starting your focus session.";
-      }
-    }
-  
-    // Show DND reminder before starting focus mode
-    function showDndReminder() {
-      if (!isFocusMode) {
-        dndReminder.classList.add('show');
-        focusBtn.textContent = "I've enabled DND - Start Focus";
-        focusBtn.removeEventListener("click", showDndReminder);
-        focusBtn.addEventListener("click", toggleFocusMode);
-      } else {
-        toggleFocusMode();
-      }
-    }
-  
-    // Blinking Animation
-    function startBlinking() {
-      setInterval(() => {
-        if (!isFocusMode) {
-          normalSprite.src = `/character/${currentStage}-blinking.png`;
-          setTimeout(() => {
-            normalSprite.src = `/character/${currentStage}-normal.png`;
-          }, 300);
+    <title>MicroMate</title>
+    <style>
+        body {
+            padding: 5vw;
+            margin: 0;
+            background: #222;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            font-family: Arial, sans-serif;
+            color: white;
+            text-align: center;
         }
-      }, 3000);
-    }
-  
-    // Toggle Focus Mode
-    function toggleFocusMode() {
-      isFocusMode = !isFocusMode;
-      
-      if (isFocusMode) {
-        focusBtn.textContent = "Stop Focus Mode";
-        normalSprite.style.display = "none";
-        focusSprite.style.display = "block";
-        focusOverlay.style.display = "block";
-        dndReminder.classList.remove('show');
         
-        focusBtn.removeEventListener("click", toggleFocusMode);
-        focusBtn.addEventListener("click", toggleFocusMode);
+        #character-normal, #character-focus {
+            width: 30vw;
+            min-width: 150px;
+            z-index: 1; /* Ensures character stays behind UI */
+        }
+
+        #character-container {
+  height: 200px;
+  position: relative;
+  z-index: 1;
+}
+
+#time-display, 
+#focus-btn, 
+.dnd-reminder {
+  position: relative;
+  z-index: 2;
+}
+
+/* Ensure intro overlay is on top */
+.intro-overlay {
+  z-index: 1000;
+}
         
-        timer = setInterval(updateTimer, 1000);
-      } else {
-        clearInterval(timer);
-        focusBtn.textContent = "Enter Focus Mode";
-        normalSprite.style.display = "block";
-        focusSprite.style.display = "none";
-        focusOverlay.style.display = "none";
+        #character-normal, #character-focus {
+            position: absolute;
+            left: 50%;
+            transform: translateX(-50%);
+            image-rendering: pixelated;
+        }
         
-        focusBtn.removeEventListener("click", toggleFocusMode);
-        focusBtn.addEventListener("click", showDndReminder);
-      }
-    }
-  
-    function updateTimer() {
-      totalSeconds++;
-      const mins = Math.floor(totalSeconds/60).toString().padStart(2,'0');
-      const secs = (totalSeconds%60).toString().padStart(2,'0');
-      timeDisplay.textContent = `${mins}:${secs}`;
-      if (totalSeconds % 900 === 0) checkEvolution();
-    }
-  
-    // Evolution Check
-    function checkEvolution() {
-      const stage = STAGES[currentStage];
-      if (stage && totalSeconds >= stage.minutes * 60) {
-        const nextStage = stage.next;
-        currentStage = nextStage;
-        updateSprites();
-        alert(`Congratulations! Your MicroMate has reached the ${stage.name} stage!`);
-      }
-    }
-  
-    // Update All Sprites
-    function updateSprites() {
-      normalSprite.src = `/character/${currentStage}-normal.png`;
-      focusSprite.src = `/character/${currentStage}-focus.png`;
-    }
-  
-    // Start the game
-    window.onload = init;
-  </script>
+        #focus-overlay {
+            position: absolute;
+            top: -10px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 100px;
+            height: 100px;
+            background: rgba(255, 255, 0, 0.2);
+            border-radius: 50%;
+            display: none;
+            pointer-events: none;
+        }
+        
+        #focus-btn {
+            padding: 12px 24px;
+            background: #4CAF50;
+            border: none;
+            border-radius: 8px;
+            color: white;
+            cursor: pointer;
+            font-family: Arial, sans-serif;
+            font-size: 16px;
+            font-weight: bold;
+            margin: 30px 0 15px 0;
+        }
+        
+        #time-display {
+            font-family: Arial, sans-serif;
+            font-size: 20px;
+            font-weight: bold;
+            margin: 10px 0;
+            color: #4CAF50;
+            letter-spacing: 1px;
+        }
+        
+        .dnd-reminder {
+            background-color: #333;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 20px;
+            max-width: 80%;
+            display: none;
+        }
+        
+        .dnd-reminder.show {
+            display: block;
+        }
+        
+        .dnd-reminder h3 {
+            margin-top: 0;
+            color: #4CAF50;
+        }
+        
+        .dnd-reminder p {
+            margin-bottom: 0;
+        }
+
+        /* Intro Messages */
+        .intro-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.9);
+            z-index: 1000;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            color: white;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+
+        .intro-message {
+            background: #333;
+            padding: 25px;
+            border-radius: 12px;
+            max-width: 80%;
+            text-align: center;
+            animation: fadeIn 0.5s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .intro-title {
+            color: #4CAF50;
+            font-size: 24px;
+            margin-bottom: 15px;
+        }
+
+        .intro-text {
+            margin-bottom: 15px;
+            line-height: 1.5;
+        }
+
+        .intro-subtext {
+            font-style: italic;
+            color: #aaa;
+        }
+
+        .next-message-btn {
+            background: #4CAF50;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 6px;
+            color: white;
+            margin-top: 20px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div id="character-container">
+        <div id="focus-overlay"></div>
+        <img id="character-normal" src="/character/baby-normal.png">
+        <img id="character-focus" src="/character/baby-focus.png" style="display:none">
+    </div>
+    
+    <div id="time-display">00:00</div>
+    <button id="focus-btn">Begin first focus session!</button>
+
+    <div id="dnd-reminder" class="dnd-reminder">
+        <h3>Before You Start</h3>
+        <p id="dnd-instructions"></p>
+    </div>
+
+    <!-- Intro Messages Overlay -->
+    <div id="intro-overlay" class="intro-overlay" style="display:none;">
+        <div class="intro-message">
+            <h2 class="intro-title" id="intro-title"></h2>
+            <p class="intro-text" id="intro-text"></p>
+            <p class="intro-subtext" id="intro-subtext"></p>
+            <button class="next-message-btn" id="next-message-btn">Continue</button>
+        </div>
+    </div>
+
+    <script>
+        // Game Configuration
+        const STAGES = {
+            baby: { next: "child", minutes: 15, name: "Child" },
+            child: { next: "teen", minutes: 30, name: "Teen" },
+            teen: { next: "adult", minutes: 45, name: "Adult" }
+        };
+
+        const INTRO_MESSAGES = [
+            {
+                title: "Welcome to MicroMate!",
+                text: "The digital buddy that grows with you",
+                subtext: ""
+            },
+            {
+                title: "How it works",
+                text: "When you enter focus mode, notifications will be muted (except for calls!), and your MicroMate will begin to photosynthesize!",
+                subtext: ""
+            },
+            {
+                title: "Focus on what matters",
+                text: "When in focus mode, you can put your phone down and spend time on anything you would like, whether it's catching up on schoolwork or pursuing a hobby you would like to make more time for!",
+                subtext: "You can turn off focus mode at any time by hitting the 'Stop Focus Mode' button"
+            },
+            {
+                title: "Watch them grow!",
+                text: "Once your MicroMate has spent enough time photosynthesizing, he will grow into a new stage of life! The more time you spend pursuing what you would like, the more it grows :)",
+                subtext: "Hint: Your MicroMate's first evolution will happen after 15 minutes of focus time"
+            }
+        ];
+        
+        // Game State
+        let isTabActive = true;
+        let currentStage = "baby";
+        let totalSeconds = 0;
+        let isFocusMode = false;
+        let timer;
+        let currentMessageIndex = 0;
+        
+        // DOM Elements
+        const normalSprite = document.getElementById("character-normal");
+        const focusSprite = document.getElementById("character-focus");
+        const focusOverlay = document.getElementById("focus-overlay");
+        const focusBtn = document.getElementById("focus-btn");
+        const timeDisplay = document.getElementById("time-display");
+        const dndReminder = document.getElementById("dnd-reminder");
+        const dndInstructions = document.getElementById("dnd-instructions");
+        const introOverlay = document.getElementById("intro-overlay");
+        const introTitle = document.getElementById("intro-title");
+        const introText = document.getElementById("intro-text");
+        const introSubtext = document.getElementById("intro-subtext");
+        const nextMessageBtn = document.getElementById("next-message-btn");
+
+        // Initialize
+        function init() {
+          showIntroMessage(0);
+          console.log("Intro should be visible now!");
+            updateSprites();
+            startBlinking();
+            focusBtn.addEventListener("click", showDndReminder);
+            setupDndInstructions();
+            
+            // Show intro if first visit
+            if (!localStorage.getItem('hasSeenIntro')) {
+                showIntroMessage(0);
+                localStorage.setItem('hasSeenIntro', 'true');
+            }
+        }
+
+        // Intro Messages
+        function showIntroMessage(index) {
+            if (index >= INTRO_MESSAGES.length) {
+                introOverlay.style.display = "none";
+                return;
+            }
+            
+            const message = INTRO_MESSAGES[index];
+            introTitle.textContent = message.title;
+            introText.textContent = message.text;
+            introSubtext.textContent = message.subtext;
+            introOverlay.style.display = "flex";
+        }
+
+        // DND Instructions
+        function setupDndInstructions() {
+            const isIOS = /iPhone|iPad|iPod/.test(navigator.userAgent);
+            dndInstructions.textContent = isIOS 
+                ? "For best results, enable Do Not Disturb mode in your Control Center before starting your focus session." 
+                : "For best results, enable Do Not Disturb mode in your phone's settings before starting your focus session.";
+        }
+
+        function showDndReminder() {
+            if (!isFocusMode) {
+                dndReminder.classList.add('show');
+                focusBtn.textContent = "I've enabled DND - Start Focus";
+                focusBtn.removeEventListener("click", showDndReminder);
+                focusBtn.addEventListener("click", toggleFocusMode);
+            } else {
+                toggleFocusMode();
+            }
+        }
+
+        // Blinking Animation
+        function startBlinking() {
+            setInterval(() => {
+                if (!isFocusMode) {
+                    normalSprite.src = `/character/${currentStage}-blinking.png`;
+                    setTimeout(() => {
+                        normalSprite.src = `/character/${currentStage}-normal.png`;
+                    }, 300);
+                }
+            }, 3000);
+        }
+
+        // Toggle Focus Mode
+        function toggleFocusMode() {
+            isFocusMode = !isFocusMode;
+            
+            if (isFocusMode) {
+                focusBtn.textContent = "Stop Focus Mode";
+                normalSprite.style.display = "none";
+                focusSprite.style.display = "block";
+                focusOverlay.style.display = "block";
+                dndReminder.classList.remove('show');
+                timer = setInterval(updateTimer, 1000);
+            } else {
+                clearInterval(timer);
+                focusBtn.textContent = "Enter Focus Mode";
+                normalSprite.style.display = "block";
+                focusSprite.style.display = "none";
+                focusOverlay.style.display = "none";
+            }
+            focusBtn.addEventListener("click", toggleFocusMode);
+        }
+
+        // Timer
+        function updateTimer() {
+            if (!isTabActive) return;
+
+            totalSeconds++;
+            const mins = Math.floor(totalSeconds/60).toString().padStart(2,'0');
+            const secs = (totalSeconds%60).toString().padStart(2,'0');
+            timeDisplay.textContent = `${mins}:${secs}`;
+            if (totalSeconds % 900 === 0) checkEvolution();
+        }
+
+        // Evolution
+        function checkEvolution() {
+            const stage = STAGES[currentStage];
+            if (stage && totalSeconds >= stage.minutes * 60) {
+                currentStage = stage.next;
+                updateSprites();
+                alert(`Congratulations! Your MicroMate has reached the ${stage.name} stage!`);
+            }
+        }
+
+        // Update Sprites
+        function updateSprites() {
+            normalSprite.src = `/character/${currentStage}-normal.png`;
+            focusSprite.src = `/character/${currentStage}-focus.png`;
+        }
+
+        // Event Listeners
+        nextMessageBtn.addEventListener("click", () => {
+            currentMessageIndex++;
+            showIntroMessage(currentMessageIndex);
+        });
+        document.addEventListener('visibilitychange', () => {
+  isTabActive = !document.hidden;
+  console.log(isTabActive ? "Tab active - timer running" : "Tab inactive - timer paused");
+});
+
+// Pause timer when window loses focus
+window.addEventListener('blur', () => {
+  isTabActive = false;
+});
+
+// Resume timer when window gains focus
+window.addEventListener('focus', () => {
+  isTabActive = true;
+});
+
+        // Start the app
+        window.onload = init;
+    </script>
 </body>
 </html>
