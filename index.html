@@ -5,124 +5,112 @@
   <title>MicroMate</title>
   <style>
     body {
-        padding: 5vw; /* Gives breathing room on all sides */  
-      margin: 0;
-      background: #222;
-      height: 100vh;
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-      align-items: center;
-      font-family: Arial, sans-serif;
-      color: white;
-      text-align: center;
+        padding: 5vw;
+        margin: 0;
+        background: #222;
+        height: 100vh;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        font-family: Arial, sans-serif;
+        color: white;
+        text-align: center;
     }
     
-    /* Character sizing */
     #character-normal, #character-focus {
-    width: 30vw;  /* Responsive width */
-    min-width: 150px;  /* Prevents getting too small */
+        width: 30vw;
+        min-width: 150px;
     }
 
-        /* Text sizing */
     #time-display, #focus-btn {
-    font-size: min(5vw, 24px);  /* Scales between 5% of viewport and 24px max */
-    }
-
-    /* Popup sizing */
-    .popup {
-    max-width: 90vw;  /* 90% of viewport width */
-    width: 400px;     /* But no wider than 400px */
+        font-size: min(5vw, 24px);
     }
 
     #character-container {
-      position: relative;
-      height: 200px;
-      margin-bottom: 20px;
+        position: relative;
+        height: 200px;
+        margin-bottom: 20px;
     }
     
     #character-normal, #character-focus {
-      position: absolute;
-      left: 50%;
-      transform: translateX(-50%);
-      image-rendering: pixelated;
+        position: absolute;
+        left: 50%;
+        transform: translateX(-50%);
+        image-rendering: pixelated;
     }
     
     #focus-overlay {
-      position: absolute;
-      top: -10px;
-      left: 50%;
-      transform: translateX(-50%);
-      width: 100px;
-      height: 100px;
-      background: rgba(255, 255, 0, 0.2);
-      border-radius: 50%;
-      display: none;
-      pointer-events: none;
+        position: absolute;
+        top: -10px;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 100px;
+        height: 100px;
+        background: rgba(255, 255, 0, 0.2);
+        border-radius: 50%;
+        display: none;
+        pointer-events: none;
     }
     
     #focus-btn {
-      padding: 12px 24px;
-      background: #4CAF50;
-      border: none;
-      border-radius: 8px;
-      color: white;
-      cursor: pointer;
-      font-family: Arial, sans-serif;
-      font-size: 16px;
-      font-weight: bold;
-      margin: 30px 0 15px 0;
+        padding: 12px 24px;
+        background: #4CAF50;
+        border: none;
+        border-radius: 8px;
+        color: white;
+        cursor: pointer;
+        font-family: Arial, sans-serif;
+        font-size: 16px;
+        font-weight: bold;
+        margin: 30px 0 15px 0;
     }
     
     #time-display {
-      font-family: Arial, sans-serif;
-      font-size: 20px;
-      font-weight: bold;
-      margin: 10px 0;
-      color: #4CAF50;
-      letter-spacing: 1px;
+        font-family: Arial, sans-serif;
+        font-size: 20px;
+        font-weight: bold;
+        margin: 10px 0;
+        color: #4CAF50;
+        letter-spacing: 1px;
     }
     
-    /* Face-down overlay */
-    #face-down-overlay {
-      display: none;
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background: rgba(0,0,0,0.9);
-      z-index: 1000;
-      flex-direction: column;
-      justify-content: center;
-      align-items: center;
+    .dnd-reminder {
+        background-color: #333;
+        padding: 15px;
+        border-radius: 8px;
+        margin-top: 20px;
+        max-width: 80%;
+        display: none;
     }
     
-    #face-down-message {
-      color: #4CAF50;
-      font-size: 18px;
-      margin-bottom: 20px;
-      text-align: center;
-      font-weight: bold;
+    .dnd-reminder.show {
+        display: block;
+    }
+    
+    .dnd-reminder h3 {
+        margin-top: 0;
+        color: #4CAF50;
+    }
+    
+    .dnd-reminder p {
+        margin-bottom: 0;
     }
   </style>
 </head>
 <body>
   <div id="character-container">
     <div id="focus-overlay"></div>
-    <img id="character-normal" src="/character/baby-normal.png">
-    <img id="character-focus" src="/character/baby-focus.png" style="display:none">
+    <img id="character-normal" src="character/baby-normal.png">
+    <img id="character-focus" src="character/baby-focus.png" style="display:none">
   </div>
   
   <div id="time-display">00:00</div>
   <button id="focus-btn">Begin first focus session!</button>
-  <button id="motion-btn" style="display:none;">Enable Motion</button>
 
-
-  <!-- Add the face-down overlay elements -->
-  <div id="face-down-overlay">
-    <div id="face-down-message">Phone is face down - Focus Mode Active</div>
-    <div id="time-display-face-down" style="color: white; font-size: 24px;">00:00</div>
+  <div id="dnd-reminder" class="dnd-reminder">
+    <h3>Before You Start</h3>
+    <p id="dnd-instructions"></p>
   </div>
 
   <script>
@@ -145,49 +133,46 @@
     const focusOverlay = document.getElementById("focus-overlay");
     const focusBtn = document.getElementById("focus-btn");
     const timeDisplay = document.getElementById("time-display");
-    const faceDownOverlay = document.getElementById("face-down-overlay");
-    const timeDisplayFaceDown = document.getElementById("time-display-face-down");
-
-    // Face detection variables
-    let faceDownTimeout;
-    let isFaceDown = false;
+    const dndReminder = document.getElementById("dnd-reminder");
+    const dndInstructions = document.getElementById("dnd-instructions");
 
     // Initialize
     function init() {
       updateSprites();
       startBlinking();
-      focusBtn.addEventListener("click", toggleFocusMode);
-      requestOrientationPermission(); // Start face detection on init
+      focusBtn.addEventListener("click", showDndReminder);
+      setupDndInstructions();
     }
 
-    function requestOrientationPermission() {
-  const isIOS = /iPhone|iPad|iPod/.test(navigator.userAgent);
-  if (isIOS && typeof DeviceMotionEvent?.requestPermission === "function") {
-    document.getElementById("motion-btn").style.display = "block";
-    document.getElementById("motion-btn").addEventListener("click", () => {
-      DeviceMotionEvent.requestPermission().then(response => {
-        if (response === "granted") {
-          window.addEventListener("deviceorientation", handleOrientation);
-          document.getElementById("motion-btn").style.display = "none";
-        } else {
-          alert("Motion access denied. Face-down detection won't work.");
-        }
-      });
-    });
-  } else {
-    // Not iOS or no permission needed
-    window.addEventListener("deviceorientation", handleOrientation);
-  }
-}
+    // Set up appropriate DND instructions based on platform
+    function setupDndInstructions() {
+      const isIOS = /iPhone|iPad|iPod/.test(navigator.userAgent);
+      if (isIOS) {
+        dndInstructions.textContent = "For best results, enable Do Not Disturb mode in your Control Center before starting your focus session.";
+      } else {
+        dndInstructions.textContent = "For best results, enable Do Not Disturb mode in your phone's settings before starting your focus session.";
+      }
+    }
 
+    // Show DND reminder before starting focus mode
+    function showDndReminder() {
+      if (!isFocusMode) {
+        dndReminder.classList.add('show');
+        focusBtn.textContent = "I've enabled DND - Start Focus";
+        focusBtn.removeEventListener("click", showDndReminder);
+        focusBtn.addEventListener("click", toggleFocusMode);
+      } else {
+        toggleFocusMode();
+      }
+    }
 
     // Blinking Animation
     function startBlinking() {
       setInterval(() => {
         if (!isFocusMode) {
-          normalSprite.src = `/character/${currentStage}-blinking.png`;
+          normalSprite.src = `character/${currentStage}-blinking.png`;
           setTimeout(() => {
-            normalSprite.src = `/character/${currentStage}-normal.png`;
+            normalSprite.src = `character/${currentStage}-normal.png`;
           }, 300);
         }
       }, 3000);
@@ -198,23 +183,25 @@
       isFocusMode = !isFocusMode;
       
       if (isFocusMode) {
-        // Simplified focus mode start
         focusBtn.textContent = "Stop Focus Mode";
         normalSprite.style.display = "none";
         focusSprite.style.display = "block";
         focusOverlay.style.display = "block";
-        faceDownOverlay.style.display = "none";
+        dndReminder.classList.remove('show');
         
-        // Start timer
+        focusBtn.removeEventListener("click", toggleFocusMode);
+        focusBtn.addEventListener("click", toggleFocusMode);
+        
         timer = setInterval(updateTimer, 1000);
       } else {
-        // Cleanup
         clearInterval(timer);
         focusBtn.textContent = "Enter Focus Mode";
         normalSprite.style.display = "block";
         focusSprite.style.display = "none";
         focusOverlay.style.display = "none";
-        faceDownOverlay.style.display = "none";
+        
+        focusBtn.removeEventListener("click", toggleFocusMode);
+        focusBtn.addEventListener("click", showDndReminder);
       }
     }
 
@@ -223,68 +210,7 @@
       const mins = Math.floor(totalSeconds/60).toString().padStart(2,'0');
       const secs = (totalSeconds%60).toString().padStart(2,'0');
       timeDisplay.textContent = `${mins}:${secs}`;
-      timeDisplayFaceDown.textContent = timeDisplay.textContent;
       if (totalSeconds % 900 === 0) checkEvolution();
-    }
-
-    // Face detection functions
-    function startFaceDetection() {
-      if (window.DeviceOrientationEvent) {
-        window.addEventListener('deviceorientation', handleOrientation);
-      } else {
-        console.log("Face-down detection not supported on this device");
-      }
-    }
-
-    function stopFaceDetection() {
-      window.removeEventListener('deviceorientation', handleOrientation);
-      clearTimeout(faceDownTimeout);
-      isFaceDown = false;
-    }
-
-    function handleOrientation(event) {
-      if (!event.beta) return; // Some devices don't provide beta
-      
-      const beta = Math.abs(event.beta); // Front/back tilt
-      const gamma = Math.abs(event.gamma); // Left/right tilt
-      const isNowFaceDown = beta > 150 && gamma < 30; // Phone is face-down and relatively flat
-      
-      if (isNowFaceDown && !isFaceDown) {
-        // Phone just went face down
-        isFaceDown = true;
-        clearTimeout(faceDownTimeout);
-        if (!isFocusMode) {
-          beginActualFocusMode();
-        }
-        faceDownOverlay.style.display = "flex";
-      } else if (!isNowFaceDown && isFaceDown) {
-        // Phone just lifted up
-        isFaceDown = false;
-        faceDownOverlay.style.display = "none";
-        faceDownTimeout = setTimeout(() => {
-          if (isFocusMode) {
-            toggleFocusMode(); // Exit after 3 sec delay
-          }
-        }, 3000);
-      }
-    }
-
-    function beginActualFocusMode() {
-      isFocusMode = true;
-      focusBtn.textContent = "Stop Focus Mode";
-      normalSprite.style.display = "none";
-      focusSprite.style.display = "block";
-      focusOverlay.style.display = "block";
-      
-      // Start timer
-      timer = setInterval(updateTimer, 1000);
-    }
-
-    // Update time display
-    function updateTimeDisplay() {
-      const minutes = Math.floor(totalSeconds / 60).toString().padStart(2, '0');
-      const seconds = (totalSeconds % 60).toString().padStart(2, '0');
-      timeDisplay.textContent = `${minutes}:${seconds}`;
     }
 
     // Evolution Check
@@ -300,8 +226,8 @@
 
     // Update All Sprites
     function updateSprites() {
-      normalSprite.src = `/character/${currentStage}-normal.png`;
-      focusSprite.src = `/character/${currentStage}-focus.png`;
+      normalSprite.src = `character/${currentStage}-normal.png`;
+      focusSprite.src = `character/${currentStage}-focus.png`;
     }
 
     // Start the game
