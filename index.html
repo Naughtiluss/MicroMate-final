@@ -101,8 +101,8 @@
 <body>
   <div id="character-container">
     <div id="focus-overlay"></div>
-    <img id="character-normal" src="character/baby-normal.png">
-    <img id="character-focus" src="character/baby-focus.png" style="display:none">
+    <img id="character-normal" src="/character/baby-normal.png">
+    <img id="character-focus" src="/character/baby-focus.png" style="display:none">
   </div>
   
   <div id="time-display">00:00</div>
@@ -170,9 +170,9 @@
     function startBlinking() {
       setInterval(() => {
         if (!isFocusMode) {
-          normalSprite.src = `character/${currentStage}-blinking.png`;
+          normalSprite.src = `/character/${currentStage}-blinking.png`;
           setTimeout(() => {
-            normalSprite.src = `character/${currentStage}-normal.png`;
+            normalSprite.src = `/character/${currentStage}-normal.png`;
           }, 300);
         }
       }, 3000);
@@ -226,8 +226,8 @@
 
     // Update All Sprites
     function updateSprites() {
-      normalSprite.src = `character/${currentStage}-normal.png`;
-      focusSprite.src = `character/${currentStage}-focus.png`;
+      normalSprite.src = `/character/${currentStage}-normal.png`;
+      focusSprite.src = `/character/${currentStage}-focus.png`;
     }
 
     // Start the game
